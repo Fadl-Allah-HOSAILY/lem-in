@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 func main() {
-	numAnts, Rooms, Links, StartRoom, EndRoom, err := ParseFile("examples/file1.txt")
+	numAnts, Rooms, Links, StartRoom, EndRoom, err := ParseFile("examples/file3.txt")
 	if err != nil {
 		panic(err)
 	}

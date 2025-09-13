@@ -1,4 +1,4 @@
-3
+40
 ##start
 Start 0 0
 A 2 1
