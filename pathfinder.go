@@ -1,5 +1,12 @@
 package main
 
+type Graph struct {
+	Rooms map[string]Room
+	Links map[string][]string
+	Start string
+	End   string
+}
+
 // FindMultiplePaths finds all disjoint paths from start to end
 func FindMultiplePaths(graph *Graph) []Path {
 	paths := []Path{}
