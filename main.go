@@ -1,7 +1,9 @@
 package main
 
+import "fmt"
+
 func main() {
-	numAnts, Rooms, Links, StartRoom, EndRoom, _, err := ParseFile("examples/big_7.txt")
+	numAnts, Rooms, Links, StartRoom, EndRoom, _, err := ParseFile("examples/file0.txt")
 	if err != nil {
 		panic(err)
 	}
@@ -14,6 +16,7 @@ func main() {
 	}
 
 	paths := FindMultiplePaths(graph)
+	fmt.Println(paths)
 	antsOnPath := distributeAnts(paths, numAnts)
-	SimulateAnts(paths, antsOnPath)
+	SimulateAntMovement(paths, antsOnPath)
 }
