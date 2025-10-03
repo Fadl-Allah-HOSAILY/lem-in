@@ -2,10 +2,25 @@ package main
 
 import "fmt"
 
+/*
+##start
+##end FIX
+
+A 5 1
+c 5 1
+
+h 4 6
+A 5
+c 8 1
+
+dup link e-e
+*/
+
 func main() {
-	numAnts, Rooms, Links, StartRoom, EndRoom, _, err := ParseFile("examples/file0.txt")
+	numAnts, Rooms, Links, StartRoom, EndRoom, err := ParseFile("examples/file0.txt")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 
 	graph := &Graph{
@@ -16,7 +31,6 @@ func main() {
 	}
 
 	paths := FindMultiplePaths(graph)
-	fmt.Println(paths)
-	antsOnPath := distributeAnts(paths, numAnts)
-	SimulateAntMovement(paths, antsOnPath)
+	distrobution := distributeAnts(paths, numAnts)
+	SimulateAnts(paths, distrobution)
 }

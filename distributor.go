@@ -20,5 +20,6 @@ func distributeAnts(paths []Path, numAnts int) []int {
 		}
 		antsOnPath[minIndex]++
 	}
+
 	return antsOnPath
 }
