@@ -8,6 +8,8 @@ import (
 	"lemin/pathfinder"
 )
 
+// trimspace in lines parse
+
 func main() {
 	if len(os.Args) != 2 {
 		fmt.Println("Usage: go run . file.txt")
@@ -48,5 +50,7 @@ func main() {
 	}
 
 	distrobution := distributeAnts(finalPaths, NumAnts)
+
 	SimulateAnts(finalPaths, distrobution)
+	fmt.Println(len(finalPaths))
 }

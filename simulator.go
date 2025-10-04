@@ -11,47 +11,54 @@ type Ant struct {
 	Pos  int // index in Path
 }
 
-func SimulateAnts(finalPaths [][]string, antsOnPath []int) {
-	type Ant struct {
-		ID   int
-		Path []string
-		Pos  int
+// simulate ants turn by turn and print moves
+func allAntsAtEnd(ants []Ant) bool {
+	for _, ant := range ants {
+		if ant.Pos < len(ant.Path)-1 {
+			return false
+		}
 	}
+	return true
+}
 
-	// Initialize all ants
+func SimulateAnts(paths [][]string, antsOnPath []int) {
+	// 1. Initialize ants
 	ants := []Ant{}
 	antID := 1
 	for i, n := range antsOnPath {
 		for j := 0; j < n; j++ {
 			ants = append(ants, Ant{
 				ID:   antID,
-				Path: finalPaths[i],
-				Pos:  0,
+				Path: paths[i],
+				Pos:  0, // starting at the start room
 			})
 			antID++
 		}
 	}
 
-	// Turn by turn simulation
-	for {
-		allAtEnd := true
+	// 2. Turn by turn
+	for !allAntsAtEnd(ants) {
 		movesThisTurn := []string{}
+		occupied := map[string]bool{} // intermediate rooms occupied this turn
 
 		for i := range ants {
 			if ants[i].Pos < len(ants[i].Path)-1 {
-				ants[i].Pos++
-				movesThisTurn = append(movesThisTurn,
-					fmt.Sprintf("L%d-%s", ants[i].ID, ants[i].Path[ants[i].Pos]))
-				allAtEnd = false
+				nextRoom := ants[i].Path[ants[i].Pos+1]
+
+				// move if room is free or it's the end
+				if !occupied[nextRoom] || nextRoom == ants[i].Path[len(ants[i].Path)-1] {
+					ants[i].Pos++
+					movesThisTurn = append(movesThisTurn,
+						fmt.Sprintf("L%d-%s", ants[i].ID, nextRoom))
+					if nextRoom != ants[i].Path[len(ants[i].Path)-1] {
+						occupied[nextRoom] = true
+					}
+				}
 			}
 		}
 
 		if len(movesThisTurn) > 0 {
 			fmt.Println(strings.Join(movesThisTurn, " "))
-		}
-
-		if allAtEnd {
-			break
 		}
 	}
 }
