@@ -40,31 +40,29 @@ func findNonOverlappingPaths(f *Farm) [][]string {
 	return selectedPaths
 }
 
-// BFS performs a Breadth-First Search starting from a given node to find the shortest path
-// avoids blocked rooms
-func BFS(graph *Graph, blocked map[string]bool) []string {
-	queue := []string{graph.Start}
-	visited := map[string]bool{graph.Start: true}
-	prev := map[string]string{}
+// ----- Optimized BFS to find shortest path avoiding blocked rooms -----
+func bfsShortestPath(f *Farm, startNeighbor string, blockedRooms map[string]bool) []string {
+	queue := [][]string{{f.Start, startNeighbor}}
+	visited := make(map[string]bool)
+	visited[f.Start] = true
+	visited[startNeighbor] = true
 
 	for len(queue) > 0 {
-		room := queue[0]
+		path := queue[0]
 		queue = queue[1:]
+		last := path[len(path)-1]
 
-		if room == graph.End {
-			// reconstruct path
-			path := []string{}
-			for at := graph.End; at != ""; at = prev[at] {
-				path = append([]string{at}, path...)
-			}
+		if last == f.End {
 			return path
 		}
 
-		for _, neighbor := range graph.Links[room] {
-			if !visited[neighbor] && !blocked[neighbor] {
-				visited[neighbor] = true
-				prev[neighbor] = room
-				queue = append(queue, neighbor)
+		for _, next := range f.Rooms[last].Links {
+			if !visited[next] && !blockedRooms[next] {
+				visited[next] = true
+				newPath := make([]string, len(path))
+				copy(newPath, path)
+				newPath = append(newPath, next)
+				queue = append(queue, newPath)
 			}
 		}
 	}
