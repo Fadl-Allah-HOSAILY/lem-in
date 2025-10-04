@@ -30,7 +30,20 @@ func main() {
 		End:   EndRoom,
 	}
 
-	paths := FindMultiplePaths(graph)
-	distrobution := distributeAnts(paths, numAnts)
+	allPaths := findAllShortestPaths(farm)
+	bestPaths := selectBestPaths(farm, allPaths)
+		nonOverlapPaths := findNonOverlappingPaths(farm)
+	var finalPaths [][]string
+	if len(nonOverlapPaths) > len(bestPaths) {
+		finalPaths = nonOverlapPaths
+	} else {
+		finalPaths = bestPaths
+	}
+
+	if len(finalPaths) == 0 {
+		fmt.Println("No valid paths found!")
+		return
+	}
+	distrobution := distributeAnts(finalPaths, numAnts)
 	SimulateAnts(paths, distrobution)
 }
