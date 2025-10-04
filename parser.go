@@ -6,34 +6,22 @@ import (
 	"os"
 	"strconv"
 	"strings"
-)
 
-type Room struct {
-	Name string
-	X, Y int
-}
+	"lemin/farm"
+)
 
 type Link struct {
 	From string
 	To   string
 }
 
-type Movement struct {
-	Ant  int
-	Room string
-}
-
-// ParseFile reads the lem-in input file and returns the ant count, rooms, links, and any error.
-func ParseFile(filename string) (Ants int, Rooms map[string]Room, M_links map[string][]string,
-	StartRoom string, EndRoom string, err error,
-) {
-	Rooms = make(map[string]Room)
-	M_links = make(map[string][]string)
-	S_Links := []Link{}
+// ParseFile reads the lem-in input file and returns the ant count, rooms, and start/end rooms.
+func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom string, EndRoom string, err error) {
+	Rooms = make(map[string]farm.Room)
 
 	file, err := os.Open(filename)
 	if err != nil {
-		return 0, nil, nil, "", "", err
+		return 0, nil, "", "", err
 	}
 	defer file.Close()
 
@@ -67,8 +55,7 @@ func ParseFile(filename string) (Ants int, Rooms map[string]Room, M_links map[st
 			if Ants == 0 {
 				n, parseErr := strconv.Atoi(line)
 				if parseErr != nil || n < 1 {
-					err = fmt.Errorf("invalid ant number: %s", line)
-					return 0, nil, nil, "", "", err
+					return 0, nil, "", "", fmt.Errorf("invalid ant number: %s", line)
 				}
 				Ants = n
 				continue
@@ -80,23 +67,20 @@ func ParseFile(filename string) (Ants int, Rooms map[string]Room, M_links map[st
 			if len(parts) == 3 {
 				name := parts[0]
 				if strings.HasPrefix(name, "L") || strings.Contains(name, " ") || name == "" {
-					err = fmt.Errorf("invalid room name: %s", name)
-					return 0, nil, nil, "", "", err
+					return 0, nil, "", "", fmt.Errorf("invalid room name: %s", name)
 				}
 
 				x, parseErr1 := strconv.Atoi(parts[1])
 				y, parseErr2 := strconv.Atoi(parts[2])
 				if parseErr1 != nil || parseErr2 != nil {
-					err = fmt.Errorf("invalid room coordinates: %s", line)
-					return 0, nil, nil, "", "", err
+					return 0, nil, "", "", fmt.Errorf("invalid room coordinates: %s", line)
 				}
 
 				if _, exists := Rooms[name]; exists {
-					err = fmt.Errorf("duplicated room: %s", name)
-					return 0, nil, nil, "", "", err
+					return 0, nil, "", "", fmt.Errorf("duplicated room: %s", name)
 				}
 
-				Rooms[name] = Room{Name: name, X: x, Y: y}
+				Rooms[name] = farm.Room{Name: name, X: x, Y: y, Links: []string{}}
 
 				if nextStart {
 					StartRoom = name
@@ -113,41 +97,34 @@ func ParseFile(filename string) (Ants int, Rooms map[string]Room, M_links map[st
 			if strings.Contains(line, "-") {
 				linkParts := strings.Split(line, "-")
 				if len(linkParts) != 2 {
-					err = fmt.Errorf("invalid link format: %s", line)
-					return 0, nil, nil, "", "", err
+					return 0, nil, "", "", fmt.Errorf("invalid link format: %s", line)
 				}
 				a, b := linkParts[0], linkParts[1]
-				if _, ok := Rooms[a]; !ok {
-					err = fmt.Errorf("unknown room in link: %s", a)
-					return 0, nil, nil, "", "", err
+				roomA, okA := Rooms[a]
+				roomB, okB := Rooms[b]
+				if !okA || !okB {
+					return 0, nil, "", "", fmt.Errorf("unknown room in link: %s-%s", a, b)
 				}
-				if _, ok := Rooms[b]; !ok {
-					err = fmt.Errorf("unknown room in link: %s", b)
-					return 0, nil, nil, "", "", err
-				}
-				S_Links = append(S_Links, Link{From: a, To: b})
+
+				roomA.Links = append(roomA.Links, b)
+				roomB.Links = append(roomB.Links, a)
+
+				Rooms[a] = roomA
+				Rooms[b] = roomB
 				continue
 			}
 		} else {
-			err = fmt.Errorf("invalid line: %s", line)
-			return 0, nil, nil, "", "", err
+			return 0, nil, "", "", fmt.Errorf("invalid line: %s", line)
 		}
-
 	}
 
 	if err = scanner.Err(); err != nil {
-		return 0, nil, nil, "", "", err
+		return 0, nil, "", "", err
 	}
 
 	if Ants == 0 || StartRoom == "" || EndRoom == "" {
-		err = fmt.Errorf("missing ants or start/end room")
-		return 0, nil, nil, "", "", err
+		return 0, nil, "", "", fmt.Errorf("missing ants or start/end room")
 	}
 
-	for _, link := range S_Links {
-		M_links[link.From] = append(M_links[link.From], link.To)
-		M_links[link.To] = append(M_links[link.To], link.From)
-	}
-
-	return Ants, Rooms, M_links, StartRoom, EndRoom, nil
+	return Ants, Rooms, StartRoom, EndRoom, nil
 }

@@ -1,13 +1,66 @@
-package main
+package pathfinder
 
-type Graph struct {
-	Rooms map[string]Room
-	Links map[string][]string
-	Start string
-	End   string
+import "lemin/farm"
+
+// ----- Check if two paths share intermediate rooms -----
+func pathsShareRooms(path1, path2 []string) bool {
+	// Create set of intermediate rooms for path1
+	rooms1 := make(map[string]bool)
+	for i := 1; i < len(path1)-1; i++ {
+		rooms1[path1[i]] = true
+	}
+
+	// Check if path2 uses any of these rooms
+	for i := 1; i < len(path2)-1; i++ {
+		if rooms1[path2[i]] {
+			return true
+		}
+	}
+	return false
 }
 
-func findNonOverlappingPaths(f *Farm) [][]string {
+// ----- Select best non-conflicting paths -----
+func SelectBestPaths(f farm.Farm, allPaths [][]string) [][]string {
+	if len(allPaths) == 0 {
+		return nil
+	}
+
+	// Sort paths by length (shortest first)
+	for i := 0; i < len(allPaths)-1; i++ {
+		for j := i + 1; j < len(allPaths); j++ {
+			if len(allPaths[j]) < len(allPaths[i]) {
+				allPaths[i], allPaths[j] = allPaths[j], allPaths[i]
+			}
+		}
+	}
+
+	var selected [][]string
+	usedRooms := make(map[string]bool)
+
+	for _, path := range allPaths {
+		conflict := false
+
+		// Check if this path conflicts with any selected path
+		for _, selectedPath := range selected {
+			if pathsShareRooms(path, selectedPath) {
+				conflict = true
+				break
+			}
+		}
+
+		if !conflict {
+			selected = append(selected, path)
+			// Mark intermediate rooms as used
+			for i := 1; i < len(path)-1; i++ {
+				usedRooms[path[i]] = true
+			}
+		}
+	}
+
+	return selected
+}
+
+func FindNonOverlappingPaths(f farm.Farm) [][]string {
 	var selectedPaths [][]string
 	blockedRooms := make(map[string]bool)
 
@@ -41,7 +94,7 @@ func findNonOverlappingPaths(f *Farm) [][]string {
 }
 
 // ----- Optimized BFS to find shortest path avoiding blocked rooms -----
-func bfsShortestPath(f *Farm, startNeighbor string, blockedRooms map[string]bool) []string {
+func bfsShortestPath(f farm.Farm, startNeighbor string, blockedRooms map[string]bool) []string {
 	queue := [][]string{{f.Start, startNeighbor}}
 	visited := make(map[string]bool)
 	visited[f.Start] = true
