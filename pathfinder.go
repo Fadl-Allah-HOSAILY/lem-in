@@ -7,28 +7,37 @@ type Graph struct {
 	End   string
 }
 
-// FindMultiplePaths finds all disjoint paths from start to end
-func FindMultiplePaths(graph *Graph) []Path {
-	paths := []Path{}
-	blocked := map[string]bool{}
+func findNonOverlappingPaths(f *Farm) [][]string {
+	var selectedPaths [][]string
+	blockedRooms := make(map[string]bool)
 
-	for {
-		rawPath := BFS(graph, blocked)
-		if rawPath == nil {
-			break
-		}
+	// Sort neighbors by number of links (try neighbors with fewer connections first)
+	neighbors := make([]string, len(f.Rooms[f.Start].Links))
+	copy(neighbors, f.Rooms[f.Start].Links)
 
-		paths = append(paths, Path{Rooms: rawPath, Length: len(rawPath)})
-
-		// block intermediate rooms (except start/end)
-		for _, room := range rawPath {
-			if room != graph.Start && room != graph.End {
-				blocked[room] = true
+	// Simple sorting by number of links
+	for i := 0; i < len(neighbors)-1; i++ {
+		for j := i + 1; j < len(neighbors); j++ {
+			if len(f.Rooms[neighbors[j]].Links) < len(f.Rooms[neighbors[i]].Links) {
+				neighbors[i], neighbors[j] = neighbors[j], neighbors[i]
 			}
 		}
 	}
 
-	return paths
+	// Find path for each neighbor
+	for _, neighbor := range neighbors {
+		path := bfsShortestPath(f, neighbor, blockedRooms)
+		if path != nil {
+			selectedPaths = append(selectedPaths, path)
+
+			// Block intermediate rooms from this path (except start and end)
+			for i := 1; i < len(path)-1; i++ {
+				blockedRooms[path[i]] = true
+			}
+		}
+	}
+
+	return selectedPaths
 }
 
 // BFS performs a Breadth-First Search starting from a given node to find the shortest path
