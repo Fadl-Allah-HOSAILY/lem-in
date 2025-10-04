@@ -50,17 +50,3 @@ func main() {
 	distrobution := distributeAnts(finalPaths, NumAnts)
 	SimulateAnts(finalPaths, distrobution)
 }
-
-/*
-##start
-##end FIX
-
-A 5 1
-c 5 1
-
-h 4 6
-A 5
-c 8 1
-
-dup link e-e
-*/
