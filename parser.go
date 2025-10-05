@@ -30,7 +30,6 @@ func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom
 			continue
 		}
 
-		// Comments and special commands
 		if strings.HasPrefix(line, "#") {
 			if line == "##start" {
 				nextStart = true
@@ -40,7 +39,6 @@ func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom
 			continue
 		}
 
-		// Parse ant count
 		if Ants == 0 {
 			n, parseErr := strconv.Atoi(line)
 			if parseErr != nil || n < 1 {
@@ -52,7 +50,6 @@ func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom
 
 		parts := strings.Fields(line)
 
-		// Room definition
 		if len(parts) == 3 {
 			name := parts[0]
 			if strings.HasPrefix(name, "L") || strings.Contains(name, " ") || name == "" {
@@ -65,12 +62,10 @@ func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom
 				return 0, nil, "", "", fmt.Errorf("invalid room coordinates: %s", line)
 			}
 
-			// Duplicate name
 			if _, exists := Rooms[name]; exists {
 				return 0, nil, "", "", fmt.Errorf("duplicated room name: %s", name)
 			}
 
-			// Duplicate coordinates
 			for _, r := range Rooms {
 				if r.X == x && r.Y == y {
 					return 0, nil, "", "", fmt.Errorf("duplicated coordinates: %d %d", x, y)
@@ -90,7 +85,6 @@ func ParseFile(filename string) (Ants int, Rooms map[string]farm.Room, StartRoom
 			continue
 		}
 
-		// Link definition
 		if len(parts) == 1 && strings.Contains(parts[0], "-") {
 			linkParts := strings.Split(parts[0], "-")
 			if len(linkParts) != 2 {
