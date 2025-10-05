@@ -11,54 +11,55 @@ type Ant struct {
 	Pos  int // index in Path
 }
 
-// simulate ants turn by turn and print moves
-func allAntsAtEnd(ants []Ant) bool {
-	for _, ant := range ants {
-		if ant.Pos < len(ant.Path)-1 {
-			return false
-		}
-	}
-	return true
-}
-
 func SimulateAnts(paths [][]string, antsOnPath []int) {
-	// 1. Initialize ants
-	ants := []Ant{}
-	antID := 1
-	for i, n := range antsOnPath {
-		for j := 0; j < n; j++ {
-			ants = append(ants, Ant{
-				ID:   antID,
-				Path: paths[i],
-				Pos:  0, // starting at the start room
-			})
-			antID++
-		}
+	type Ant struct {
+		ID   int
+		Path []string
+		Pos  int
 	}
 
-	// 2. Turn by turn
-	for !allAntsAtEnd(ants) {
-		movesThisTurn := []string{}
-		occupied := map[string]bool{} // intermediate rooms occupied this turn
+	var ants []Ant
+	antID := 1
+	totalAnts := 0
+	for _, c := range antsOnPath {
+		totalAnts += c
+	}
 
-		for i := range ants {
-			if ants[i].Pos < len(ants[i].Path)-1 {
-				nextRoom := ants[i].Path[ants[i].Pos+1]
+	// Holds ants currently moving
+	activeAnts := []Ant{}
 
-				// move if room is free or it's the end
-				if !occupied[nextRoom] || nextRoom == ants[i].Path[len(ants[i].Path)-1] {
-					ants[i].Pos++
-					movesThisTurn = append(movesThisTurn,
-						fmt.Sprintf("L%d-%s", ants[i].ID, nextRoom))
-					if nextRoom != ants[i].Path[len(ants[i].Path)-1] {
-						occupied[nextRoom] = true
-					}
+	for turn := 1; len(ants) < totalAnts || len(activeAnts) > 0; turn++ {
+		var moves []string
+
+		// Move existing ants
+		newActive := []Ant{}
+		for _, ant := range activeAnts {
+			if ant.Pos < len(ant.Path)-1 {
+				ant.Pos++
+				moves = append(moves, fmt.Sprintf("L%d-%s", ant.ID, ant.Path[ant.Pos]))
+				if ant.Pos < len(ant.Path)-1 {
+					newActive = append(newActive, ant)
 				}
 			}
 		}
+		activeAnts = newActive
 
-		if len(movesThisTurn) > 0 {
-			fmt.Println(strings.Join(movesThisTurn, " "))
+		// Launch one new ant per path (if any left)
+		for i, count := range antsOnPath {
+			if count > 0 && antID <= totalAnts {
+				path := paths[i]
+				ant := Ant{ID: antID, Path: path, Pos: 0}
+				ant.Pos++
+				moves = append(moves, fmt.Sprintf("L%d-%s", ant.ID, path[ant.Pos]))
+				activeAnts = append(activeAnts, ant)
+				ants = append(ants, ant)
+				antsOnPath[i]--
+				antID++
+			}
+		}
+
+		if len(moves) > 0 {
+			fmt.Println(strings.Join(moves, " "))
 		}
 	}
 }
