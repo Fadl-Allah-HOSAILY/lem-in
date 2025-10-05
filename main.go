@@ -8,7 +8,6 @@ import (
 	"lemin/pathfinder"
 )
 
-// trimspace in lines parse
 
 func main() {
 	if len(os.Args) != 2 {
